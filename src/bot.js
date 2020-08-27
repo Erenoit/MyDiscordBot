@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const { Client, WebhookClient } = require("discord.js");
 const { ErelaClient } = require("erela.js");
+const { registerCommands } = require("../utils/register");
 let connection;
 const guildCmdPrefixes = new Map();
 
@@ -40,21 +41,40 @@ bot.on("guildCreate", async (guild) => {
 });
 
 bot.on("message", (message) => {
-    if (message.author.bot) return; //ignores bot messages
-    const PREFIX = guildCmdPrefixes.get(message.guild.id);
+    if (message.author.bot) return;                                 //ignores bot messages
+    const PREFIX = guildCmdPrefixes.get(message.guild.id);          //takes prefix from database
 
     if (message.content.toLowerCase().startsWith(PREFIX)) {         //checks if the message starts with prefix
         const [CMD_NAME, ...args] = message.content                 //makes an array first is CMD_NAME nad others args 
             .trim()                                                 //trims whitespaces
             .substring(PREFIX.length)                               //deletes prefix
             .split(/\s+/);                                          //takes up to first whitespace
+        
+        if (CMD_NAME === "changeprefix") {
+            if(message.member.id === message.guild.ownerID) {
+                if (args[0]){
+                    await connection.query(
+                        `UPDATE guildConfigurable SET cmdPrefix = "${args[0]}" WHERE guildId = "${message.guild.id}"`
+                    );
+                    guildCmdPrefixes.set(message.guild.id, args[0]);
+                    message.channel.send(`Updated guild prefix to ${args[0]}`);
+                }
+                else {
+                    message.reply("Please enter valid prefix.");
+                }
+            }
+            else {
+                message.reply("You don!t have permission to use that command.");
+            }
+        }
         }
 });
 
 (async () => {
     connection = await require("../database/db");   //database login script
-    await bot.login(process.env.BOT_Token);               //bot login script
-
+    await bot.login(process.env.BOT_Token);         //bot login script
+    bot.commands = new Map();
+    await registerCommands(bot, "../commands");
 })();
 
 bot.on("message", (message) => {
