@@ -1,6 +1,9 @@
 require("dotenv").config();
 
 const { Client, WebhookClient } = require("discord.js");
+const { ErelaClient } = require("erela.js");
+let connection;
+const guildCmdPrefixes = new Map();
 
 const bot = new Client({
     partials: ["MESSAGE", "REACTION"]
@@ -11,23 +14,55 @@ const webhook = new WebhookClient(
     process.env.WEBHOOK_TOKEN,
 );
 
-const PREFIX = "*";     //defines frefix for chat commands
-
 bot.on("ready", () => {
     console.log(`${bot.user.tag} has logged in.`);
+    bot.guilds.cache.forEach(guild => {
+        connection.query(
+            `SELECT cmdPrefix from guildConfigurable WHERE guildId = "${guild.id}"`
+        ).then(result => {
+            guildCmdPrefixes.set(guild.id, result[0][0].cmdPrefix);
+        }).catch(err => console.log(err));
+    });
 });
 
-bot.on("message", async (message) => {
+bot.on("guildCreate", async (guild) => {
+    try {
+        await connection.query(
+            `INSERT INTO Guilds VALUES("${guild.id}", "${guild.ownerID}")`
+        );
+        await connection.query(
+            `INSERT INTO guildConfigurable (guildID) VALUES("${guild.id}")`
+        );
+        }
+    catch (err) {
+        console.log(err);
+    }
+});
+
+bot.on("message", (message) => {
+    if (message.author.bot) return; //ignores bot messages
+    const PREFIX = guildCmdPrefixes.get(message.guild.id);
+
+    if (message.content.toLowerCase().startsWith(PREFIX)) {         //checks if the message starts with prefix
+        const [CMD_NAME, ...args] = message.content                 //makes an array first is CMD_NAME nad others args 
+            .trim()                                                 //trims whitespaces
+            .substring(PREFIX.length)                               //deletes prefix
+            .split(/\s+/);                                          //takes up to first whitespace
+        }
+});
+
+(async () => {
+    connection = await require("../database/db");   //database login script
+    await bot.login(process.env.BOT_Token);               //bot login script
+
+})();
+
+bot.on("message", (message) => {
     if (message.author.bot) return; //ignores bot messages
 
     console.log(`[${message.author.tag}]: ${message.content}`);
 
-    if (message.content.startsWith(PREFIX)) {           //checks if the message starts with prefix
-        const [CMD_NAME, ...args] = message.content     //makes an array first is CMD_NAME nad others args 
-            .trim()                                     //trims whitespaces
-            .substring(PREFIX.length)                   //deletes prefix
-            .split(/\s+/);                              //takes up to first whitespace
-
+    
         if (CMD_NAME === "kick") {
 
             if (!message.member.hasPermission("KICK_MEMBERS"))                      //checks permisson of user
@@ -57,7 +92,7 @@ bot.on("message", async (message) => {
             const msg = args.join(" ");
             webhook.send(msg);
         }
-    }
+    
 });
 
 bot.on("messageReactionAdd", (reaction, user) => {
@@ -103,5 +138,3 @@ bot.on("messageReactionRemove", (reaction, user) => {
         }
     };
 });
-
-bot.login(process.env.BOT_Token);       //bot login script
