@@ -24,8 +24,6 @@ const { registerCommands,
         password: process.env.PASSWORD
         }
     ]);
-
-    bot.music.on("nodeConnect", node => console.log(node));
     bot.commands = new Map();
     await registerCommands(bot, "../commands");
     await registerEvents(bot, "../events");
