@@ -1,11 +1,11 @@
 const BaseCommand = require("../../utils/structures/BaseCommand");
 
-module.exports = class BaseCommand extends BaseCommand {
+module.exports = class InfoCommand extends BaseCommand {
     constructor () {
         super ("info", "miscellaneous", []);
     }
 
-    run () {
+    run (bot, message, args) {
         console.log(this.name + " was invoked");
     }
 }
