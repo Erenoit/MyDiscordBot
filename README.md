@@ -1,7 +1,5 @@
 # My Discord Bot
 
----
-
 ## Features
 
 ### 1. Moderating
