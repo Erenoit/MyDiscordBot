@@ -6,6 +6,6 @@ module.exports = class InfoCommand extends BaseCommand {
     }
 
     run (bot, message, args) {
-        console.log(this.name + " was invoked");
+        message.channel.send("A bot by Erenoit.");
     }
 }

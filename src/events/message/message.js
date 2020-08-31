@@ -26,7 +26,6 @@ module.exports = class MessageEvent extends BaseEvent {
         //console.log(prefix);
         //console.log(guildCmdPrefixes);
         const prefix = "*";
-        console.log(`[${message.author.tag}]: ${message.content}`);
 
         if (message.content.startsWith(prefix)) {               //checks if the message starts with prefix
             const [CMD_NAME, ...args] = message.content         //makes an array first is CMD_NAME nad others args 

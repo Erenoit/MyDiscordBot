@@ -14,8 +14,9 @@ module.exports = class ReadyEvent extends BaseEvent {
         console.log(bot.user.tag + " has logged in.");
         bot.guilds.cache.forEach(guild => {
             this.connection.query(
-                `SELECT cmdPrefix from guildConfigurable WHERE guildId = "${guild.id}"`
+                `SELECT cmdPrefix from guildconfigurable WHERE guildId = "${guild.id}"`
             ).then(result => {
+                console.log(`result is: ${result}`);
                 const guildId = guild.id;
                 const prefix = result[0][0].cmdPrefix;
                 
